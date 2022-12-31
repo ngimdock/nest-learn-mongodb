@@ -3,8 +3,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
+import { Connection, Model } from 'mongoose';
 import { CreateUserDto, UpdateUserDto } from './dto';
 import { User } from './entities';
 
@@ -12,6 +12,8 @@ import { User } from './entities';
 export class UsersService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
+    @InjectModel(Event.name) private readonly eventModel: Model<Event>,
+    @InjectConnection() private readonly connection: Connection,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -70,13 +72,38 @@ export class UsersService {
 
   async remove(userId: string): Promise<User> {
     try {
-      const user = await this.userModel.findById(userId);
-
-      if (!user) throw new NotFoundException(`User #${userId} not found.`);
-
+      const user = await this.findOne(userId);
       return user.remove();
     } catch (err) {
       throw err;
+    }
+  }
+
+  async recommendUser(userId: string): Promise<User> {
+    const user = await this.findOne(userId);
+
+    const session = await this.connection.startSession();
+    session.startTransaction();
+
+    try {
+      user.recommendations++;
+
+      const recommendEvent = new this.eventModel({
+        name: 'recommend_user',
+        type: 'user',
+        payload: { userId: user._id },
+      });
+
+      recommendEvent.save({ session });
+      user.save({ session });
+
+      await session.commitTransaction();
+
+      return user;
+    } catch (err) {
+      await session.abortTransaction();
+    } finally {
+      await session.endSession();
     }
   }
 }

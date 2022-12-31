@@ -14,6 +14,9 @@ export class User extends Document {
 
   @Prop([String])
   favoriteUnit: string[];
+
+  @Prop({ default: 0 })
+  recommendations: number;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

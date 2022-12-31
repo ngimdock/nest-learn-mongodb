@@ -6,6 +6,8 @@ import {
   Patch,
   Param,
   Delete,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { IsMongodbObjectIdPipe } from 'src/common/pipes';
 import { CreateUserDto, UpdateUserDto } from './dto';
@@ -44,5 +46,13 @@ export class UsersController {
     @Param('userId', IsMongodbObjectIdPipe) userId: string,
   ): Promise<User> {
     return this.usersService.remove(userId);
+  }
+
+  @Post(':userId')
+  @HttpCode(HttpStatus.OK)
+  recommendUser(
+    @Param('userId', IsMongodbObjectIdPipe) userId: string,
+  ): Promise<User> {
+    return this.usersService.recommendUser(userId);
   }
 }
