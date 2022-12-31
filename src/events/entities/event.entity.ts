@@ -3,7 +3,7 @@ import mongoose, { Document } from 'mongoose';
 
 @Schema()
 export class Event extends Document {
-  @Prop()
+  @Prop({ index: true })
   name: string;
 
   @Prop()
@@ -14,3 +14,4 @@ export class Event extends Document {
 }
 
 export const EventSchema = SchemaFactory.createForClass(Event);
+EventSchema.index({ name: 1, type: -1 });
