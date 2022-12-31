@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
 } from '@nestjs/common';
+import { IsMongodbObjectIdPipe } from 'src/common/pipes';
 import { CreateUserDto, UpdateUserDto } from './dto';
 import { User } from './entities';
 import { UsersService } from './users.service';
@@ -26,20 +27,22 @@ export class UsersController {
   }
 
   @Get(':userId')
-  findOne(@Param('userId') userId: string) {
+  findOne(@Param('userId', IsMongodbObjectIdPipe) userId: string) {
     return this.usersService.findOne(userId);
   }
 
   @Patch(':userId')
   update(
-    @Param('userId') userId: string,
+    @Param('userId', IsMongodbObjectIdPipe) userId: string,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<User> {
     return this.usersService.update(userId, updateUserDto);
   }
 
   @Delete(':userId')
-  remove(@Param('userId') userId: string): Promise<User> {
+  remove(
+    @Param('userId', IsMongodbObjectIdPipe) userId: string,
+  ): Promise<User> {
     return this.usersService.remove(userId);
   }
 }

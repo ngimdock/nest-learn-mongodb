@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateUserDto, UpdateUserDto } from './dto';
@@ -16,6 +20,11 @@ export class UsersService {
 
       return createdUser.save();
     } catch (err) {
+      if (err.code === 11000)
+        throw new BadRequestException(
+          'The given credentials are already taken.',
+        );
+
       throw err;
     }
   }
@@ -32,7 +41,7 @@ export class UsersService {
     try {
       const foundUser = await this.userModel.findOne({ _id: userId }).exec();
 
-      if (!foundUser) throw new NotFoundException(`User #${userId} not found.`);
+      if (!foundUser) throw new NotFoundException(`User #${userId} not found`);
 
       return foundUser;
     } catch (err) {
